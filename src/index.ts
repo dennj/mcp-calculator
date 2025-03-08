@@ -1,45 +1,67 @@
-import express from "express";
-import { McpServer, ResourceTemplate } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { z } from "zod";
+import express, { Request, Response } from "express";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 
 const server = new McpServer({
-  name: "Echo",
+  name: "example-server",
   version: "1.0.0"
 });
 
-server.resource(
-  "echo",
-  new ResourceTemplate("echo://{message}", { list: undefined }),
-  async (uri, { message }) => ({
-    contents: [{
-      uri: uri.href,
-      text: `Resource echo: ${message}`
-    }]
-  })
-);
-
-server.tool(
-  "echo",
-  { message: z.string() },
-  async ({ message }) => ({
-    content: [{ type: "text", text: `Tool echo: ${message}` }]
-  })
-);
-
-server.prompt(
-  "echo",
-  { message: z.string() },
-  ({ message }) => ({
-    messages: [{
-      role: "user",
-      content: {
-        type: "text",
-        text: `Please process this message: ${message}`
-      }
-    }]
-  })
-);
+// Store active transports to support multiple clients
+const activeTransports: Map<string, SSEServerTransport> = new Map();
 
 const app = express();
-app.use(express.json());
-export default app;
+app.use(express.json()); // Ensure JSON parsing for requests
+
+// ✅ Endpoint to establish SSE connection
+app.get("/sse", async (req, res) => {
+  // Generate a unique client ID (could use UUIDs for real apps)
+  const clientId = `${Date.now()}-${Math.random()}`;
+
+  // Create an SSE transport
+  const transport = new SSEServerTransport("/messages", res);
+  
+  // Store transport in map
+  activeTransports.set(clientId, transport);
+
+  // Connect MCP server to this transport
+  await server.connect(transport);
+
+  // Remove transport when connection closes
+  req.on("close", () => {
+    activeTransports.delete(clientId);
+    console.log(`Client ${clientId} disconnected`);
+  });
+});
+
+app.post("/messages", async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { clientId, message } = req.body;
+
+    if (!clientId || !message) {
+      res.status(400).json({ error: "clientId and message are required" });
+      return;
+    }
+
+    const transport = activeTransports.get(clientId);
+
+    if (!transport) {
+      res.status(404).json({ error: "Client not found" });
+      return;
+    }
+
+    // Handle incoming message via transport
+    await transport.handlePostMessage(req, res);
+
+    res.json({ status: "Message sent" });
+  } catch (error) {
+    console.error("Error handling message:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+
+// Start server on port 3001
+app.listen(3001, () => {
+  console.log("MCP Server is running on http://localhost:3001");
+});
