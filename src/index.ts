@@ -9,6 +9,7 @@
  * - Summarizing all notes via a prompt
  */
 
+import express, { Request, Response } from "express";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
@@ -207,9 +208,23 @@ server.setRequestHandler(GetPromptRequestSchema, async (request) => {
   };
 });
 
-// ✅ Export a function that Vercel will call
-export default async function handler(req: any, res: any) {
-  const transport = new StdioServerTransport();
-  await server.connect(transport);
-  res.status(200).send("MCP Server is running");
-}
+// ✅ Express HTTP Server for Vercel
+const app = express();
+app.use(express.json());
+
+app.post("/", async (req: Request, res: Response) => {
+  try {
+    // ✅ Start MCP Transport
+    const transport = new StdioServerTransport();
+    await server.connect(transport);  // Allow MCP to handle routing
+
+    res.status(200).send("MCP Server is running");
+  } catch (err) {
+    console.error("Error handling request:", err);
+    const errorMessage = err instanceof Error ? err.message : "Internal Server Error";
+    res.status(500).json({ error: errorMessage });
+  }
+});
+
+// Export Express app for Vercel
+export default app;
