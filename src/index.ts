@@ -1,4 +1,4 @@
-import express, { Request, Response } from "express";
+import express from "express";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 
@@ -11,9 +11,7 @@ const server = new McpServer({
 const activeTransports: Map<string, SSEServerTransport> = new Map();
 
 const app = express();
-app.use(express.json()); // Ensure JSON parsing for requests
 
-// ✅ Endpoint to establish SSE connection
 app.get("/sse", async (req, res) => {
   // Generate a unique client ID (could use UUIDs for real apps)
   const clientId = `${Date.now()}-${Math.random()}`;
@@ -34,7 +32,7 @@ app.get("/sse", async (req, res) => {
   });
 });
 
-app.post("/messages", async (req: Request, res: Response): Promise<void> => {
+app.post("/messages", async (req, res) => {
   try {
     const { clientId, message } = req.body;
 
@@ -61,7 +59,4 @@ app.post("/messages", async (req: Request, res: Response): Promise<void> => {
 });
 
 
-// Start server on port 3001
-app.listen(3001, () => {
-  console.log("MCP Server is running on http://localhost:3001");
-});
+export default app;
