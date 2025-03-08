@@ -1,33 +1,4 @@
-# Node.js dependencies
 node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Environment variables
-.env
-.env.local
-.env.*.local
-
-# Logs
-logs
+build/
 *.log
-npm-debug.log*
-yarn-debug.log*
-pnpm-debug.log*
-lerna-debug.log*
-coverage/
-
-# Vercel deployment
-.vercel/
-output.log
-.cache/
-
-# IDE settings
-.vscode/
-.idea/
-.DS_Store
-
-# OS generated files
-Thumbs.db
-.DS_Store
+.env*

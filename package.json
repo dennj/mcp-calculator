@@ -1,20 +1,26 @@
 {
-  "name": "mcp-calculator",
-  "version": "1.0.0",
-  "description": "A simple MCP calculator deployed on Vercel",
-  "main": "server.js",
-  "scripts": {
-    "start": "node server.js",
-    "dev": "vercel dev",
-    "deploy": "vercel --prod",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": ["mcp", "calculator", "api", "vercel"],
-  "author": "Dennj",
-  "license": "MIT",
+  "name": "Dennj Server",
+  "version": "0.1.0",
+  "description": "XXX Server",
+  "private": true,
   "type": "module",
+  "bin": {
+    "Dennj Server": "./build/index.js"
+  },
+  "files": [
+    "build"
+  ],
+  "scripts": {
+    "build": "tsc && node -e \"require('fs').chmodSync('build/index.js', '755')\"",
+    "prepare": "npm run build",
+    "watch": "tsc --watch",
+    "inspector": "npx @modelcontextprotocol/inspector build/index.js"
+  },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.6.0",
-    "zod": "^3.24.2"
+    "@modelcontextprotocol/sdk": "1.6.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.9",
+    "typescript": "^5.3.3"
   }
 }
