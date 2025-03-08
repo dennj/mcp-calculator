@@ -207,16 +207,9 @@ server.setRequestHandler(GetPromptRequestSchema, async (request) => {
   };
 });
 
-/**
- * Start the server using stdio transport.
- * This allows the server to communicate via standard input/output streams.
- */
-async function main() {
+// ✅ Export a function that Vercel will call
+export default async function handler(req: any, res: any) {
   const transport = new StdioServerTransport();
   await server.connect(transport);
+  res.status(200).send("MCP Server is running");
 }
-
-main().catch((error) => {
-  console.error("Server error:", error);
-  process.exit(1);
-});
