@@ -214,15 +214,30 @@ app.use(express.json());
 
 app.post("/", async (req: Request, res: Response) => {
   try {
-    // ✅ Start MCP Transport
-    const transport = new StdioServerTransport();
-    await server.connect(transport);  // Allow MCP to handle routing
+    const { type, params } = req.body;
+    let response;
 
-    res.status(200).send("MCP Server is running");
+    // ✅ Manually call the correct handler based on request type
+    if (type === "list_resources") {
+      response = await server.setRequestHandler(ListResourcesRequestSchema, params);
+    } else if (type === "read_resource") {
+      response = await server.setRequestHandler(ReadResourceRequestSchema, params);
+    } else if (type === "list_tools") {
+      response = await server.setRequestHandler(ListToolsRequestSchema, params);
+    } else if (type === "call_tool") {
+      response = await server.setRequestHandler(CallToolRequestSchema, params);
+    } else if (type === "list_prompts") {
+      response = await server.setRequestHandler(ListPromptsRequestSchema, params);
+    } else if (type === "get_prompt") {
+      response = await server.setRequestHandler(GetPromptRequestSchema, params);
+    } else {
+      throw new Error(`Unknown request type: ${type}`);
+    }
+
+    res.json(response);
   } catch (err) {
     console.error("Error handling request:", err);
-    const errorMessage = err instanceof Error ? err.message : "Internal Server Error";
-    res.status(500).json({ error: errorMessage });
+    res.status(500).json({ error: err instanceof Error ? err.message : "Internal Server Error" });
   }
 });
 
