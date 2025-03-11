@@ -11,6 +11,7 @@ const server = new McpServer({
 const activeTransports: Map<string, SSEServerTransport> = new Map();
 
 const app = express();
+app.use(express.json());
 
 app.get("/sse", async (req, res) => {
   // Generate a unique client ID (could use UUIDs for real apps)
