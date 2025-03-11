@@ -26,6 +26,10 @@ app.get("/sse", async (req, res) => {
   // Connect MCP server to this transport
   await server.connect(transport);
 
+  // ✅ Explicitly send the generated clientId to the client immediately
+  res.write(`event: clientId\n`);
+  res.write(`data: ${JSON.stringify({ clientId })}\n\n`);
+
   // Remove transport when connection closes
   req.on("close", () => {
     activeTransports.delete(clientId);
